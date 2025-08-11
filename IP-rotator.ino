@@ -119,7 +119,7 @@ Použití knihovny Wire ve verzi 2.0.0 v adresáři: /home/dan/Arduino/hardware/
 
 */
 //-------------------------------------------------------------------------------------------------------
-const char* REV = "20250629";
+const char* REV = "20250811";
 
 // #define CN3A                      // fix ip
 float NoEndstopHighZone = 0;
@@ -689,7 +689,21 @@ void setup() {
   // pinMode(ShiftInClockPin, OUTPUT);
   // pinMode(ShiftInDataPin, INPUT);
 
-  Serial.begin(115200); //BaudRate
+    // Listen source
+  if (!EEPROM.begin(EEPROM_SIZE)){
+    // if(EnableSerialDebug>0){
+    //   Serial.println("failed to initialise EEPROM"); delay(1);
+    // }
+  }
+
+  // 226-227 BaudRate
+  if(EEPROM.read(226)==0xff || EEPROM.readUShort(226) > 9600){
+    BaudRate=115200;
+  }else{
+    BaudRate = EEPROM.readUShort(226);
+  }
+
+  Serial.begin(BaudRate); //BaudRate
   while(!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
@@ -818,12 +832,6 @@ void setup() {
   //   // return;
   // }
 
-  // Listen source
-  if (!EEPROM.begin(EEPROM_SIZE)){
-    if(EnableSerialDebug>0){
-      Serial.println("failed to initialise EEPROM"); delay(1);
-    }
-  }
 
   // 0-1 net ID
     if(EEPROM.read(0)==0xff){
@@ -991,13 +999,6 @@ void setup() {
     PulsePerDegree=1;
   }else{
     PulsePerDegree = EEPROM.readUShort(224);
-  }
-
-  // 226-227 BaudRate
-  if(EEPROM.read(226)==0xff || EEPROM.readUShort(226) > 9600){
-    BaudRate=115200;
-  }else{
-    BaudRate = EEPROM.readUShort(226);
   }
 
   // 228 AZtwoWire
